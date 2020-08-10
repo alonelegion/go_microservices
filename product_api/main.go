@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/go-openapi/runtime/middleware"
 	"log"
 	"net/http"
 	"os"
@@ -36,6 +37,17 @@ func main() {
 	postRouter := sm.Methods(http.MethodPost).Subrouter()
 	postRouter.HandleFunc("/", ph.AddProduct)
 	postRouter.Use(ph.MiddlewareProductValidation)
+
+	deleteRouter := sm.Methods(http.MethodDelete).Subrouter()
+	deleteRouter.HandleFunc("/{id:[0-9]+}", ph.DeleteProduct)
+
+	// handler for documentation
+	// Обработчик для документации
+	opts := middleware.RedocOpts{SpecURL: "/swagger.yaml"}
+	sh := middleware.Redoc(opts, nil)
+
+	getRouter.Handle("/docs", sh)
+	getRouter.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
 	// create a new server
 	// создание нового сервера

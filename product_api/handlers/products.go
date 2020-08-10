@@ -26,6 +26,26 @@ import (
 	"github.com/alonelegion/go_microservices/product_api/data"
 )
 
+// A list of products return in the response
+// swagger:response productsResponse
+type productsResponse struct {
+	// All products in the system
+	// in: body
+	Body []data.Product
+}
+
+// swagger:response noContent
+type productsNoContent struct {
+}
+
+// swagger:parameters deleteProduct
+type productIDParameter struct {
+	// The id of the product to delete from the database
+	// in: path
+	// required: true
+	ID int `json:"id"`
+}
+
 // Products handler for getting and updating products
 // Products является обработчиком для получения и обновления товаров
 type Products struct {
@@ -36,31 +56,6 @@ type Products struct {
 // NewProducts возвращает обработчик новых продуктов с заданным логгером
 func NewProducts(l *log.Logger) *Products {
 	return &Products{l}
-}
-
-// GetProducts returns the products from data store
-// GetProducts возвращает товары из хранилища данных
-func (p *Products) GetProducts(w http.ResponseWriter, _ *http.Request) {
-	p.l.Println("Handle GET Products")
-
-	// fetch the products from the database
-	// Получение товаров из хранилища
-	lp := data.GetProducts()
-
-	// serialize the list to JSON
-	// сериализация списка в JSON
-	err := lp.ToJSON(w)
-	if err != nil {
-		http.Error(w, "Unable to marshal json", http.StatusInternalServerError)
-		return
-	}
-}
-
-func (p *Products) AddProduct(w http.ResponseWriter, req *http.Request) {
-	p.l.Println("Handle POST Product")
-
-	prod := req.Context().Value(KeyProduct{}).(data.Product)
-	data.AddProduct(&prod)
 }
 
 func (p *Products) UpdateProducts(w http.ResponseWriter, req *http.Request) {

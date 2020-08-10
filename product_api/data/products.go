@@ -10,8 +10,12 @@ import (
 )
 
 // Product defines the structure for an API product
-// Product определяет структуру товара API
+// swagger:model
 type Product struct {
+	// the id for this user
+	//
+	// required: true
+	// min: 1
 	ID          int     `json:"id"`
 	Name        string  `json:"name" validate:"required"`
 	Description string  `json:"description"`
@@ -61,9 +65,37 @@ func GetProducts() Products {
 	return productList
 }
 
+// AddProduct adds a new product to the database
+// AddProducts добавляет новый товар в базу данных
 func AddProduct(p *Product) {
 	p.ID = getNextID()
 	productList = append(productList, p)
+}
+
+// DeleteProduct deletes a product from the database
+func DeleteProduct(id int) error {
+	i := findIndexByProductID(id)
+	if i == -1 {
+		return ErrProductNotFound
+	}
+
+	productList = append(productList[:i], productList[i+1])
+
+	return nil
+}
+
+// findIndex finds the index of a product in the database
+// return -1 when no product can be found
+// findIndex находит индекс товара в базе данных
+// возвращает -1 когда нет нужного товара
+func findIndexByProductID(id int) int {
+	for i, p := range productList {
+		if p.ID == id {
+			return i
+		}
+	}
+
+	return -1
 }
 
 func UpdateProduct(id int, p *Product) error {

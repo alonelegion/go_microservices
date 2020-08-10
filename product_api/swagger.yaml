@@ -1,0 +1,66 @@
+basePath: /
+consumes:
+- application/json
+definitions:
+  Product:
+    description: Product defines the structure for an API product
+    properties:
+      description:
+        type: string
+        x-go-name: Description
+      id:
+        description: the id for this user
+        format: int64
+        minimum: 1
+        type: integer
+        x-go-name: ID
+      name:
+        type: string
+        x-go-name: Name
+      price:
+        format: float
+        type: number
+        x-go-name: Price
+      sku:
+        type: string
+        x-go-name: SKU
+    required:
+    - id
+    type: object
+    x-go-package: github.com/alonelegion/go_microservices/product_api/data
+info:
+  description: Documentation for Product API
+  title: Product API.
+  version: 1.0.0
+paths:
+  /products:
+    get:
+      description: Return a list of products from the database
+      operationId: listProducts
+      responses:
+        "200":
+          $ref: '#/responses/productsResponse'
+      tags:
+      - products
+  /products/{id}:
+    delete:
+      description: Return a list of products from the database
+      operationId: deleteProducts
+      responses:
+        "201":
+          $ref: '#/responses/noContent'
+      tags:
+      - products
+produces:
+- application/json
+responses:
+  noContent: {}
+  productsResponse:
+    description: A list of products return in the response
+    schema:
+      items:
+        $ref: '#/definitions/Product'
+      type: array
+schemes:
+- http
+swagger: "2.0"
