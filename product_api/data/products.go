@@ -10,6 +10,7 @@ import (
 )
 
 // Product defines the structure for an API product
+// Product определяет структуру товара API
 type Product struct {
 	ID          int     `json:"id"`
 	Name        string  `json:"name" validate:"required"`
@@ -46,6 +47,7 @@ func validateSKU(fl validator.FieldLevel) bool {
 }
 
 // Products is a collection of Product
+// Products это коллекция из Product
 type Products []*Product
 
 func (p *Products) ToJSON(w io.Writer) error {
@@ -93,6 +95,10 @@ func getNextID() int {
 	return lp.ID + 1
 }
 
+// productList is a hard coded list of products for this
+// example data source
+// productList это захардкоженный список товаров для
+// примера источника данных
 var productList = []*Product{
 	&Product{
 		ID:          1,

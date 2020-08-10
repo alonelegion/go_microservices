@@ -1,8 +1,12 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/alonelegion/go_microservices/product_api/data"
 )
@@ -35,4 +39,67 @@ func (p *Products) GetProducts(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "Unable to marshal json", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (p *Products) AddProduct(w http.ResponseWriter, req *http.Request) {
+	p.l.Println("Handle POST Product")
+
+	prod := req.Context().Value(KeyProduct{}).(data.Product)
+	data.AddProduct(&prod)
+}
+
+func (p *Products) UpdateProducts(w http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(w, "Unable to convert id", http.StatusBadRequest)
+	}
+
+	p.l.Println("Handle PUT Product", id)
+
+	prod := req.Context().Value(KeyProduct{}).(data.Product)
+
+	err = data.UpdateProduct(id, &prod)
+	if err == data.ErrProductNotFound {
+		http.Error(w, "Product not found", http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, "Product not found", http.StatusInternalServerError)
+		return
+	}
+}
+
+type KeyProduct struct{}
+
+func (p *Products) MiddlewareProductValidation(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		prod := data.Product{}
+
+		err := prod.FromJSON(req.Body)
+		if err != nil {
+			p.l.Println("[ERROR] deserializing product", err)
+			http.Error(w, "Unable to unmarshal json", http.StatusBadRequest)
+			return
+		}
+
+		// validate the product
+		// валидация товара
+		err = prod.Validate()
+		if err != nil {
+			p.l.Println("[ERROR] validating ", err)
+			http.Error(w, fmt.Sprintf("Error validating product: %s", err), http.StatusBadRequest)
+			return
+		}
+
+		// add the product to the context
+		// добавление товара в контекст
+		ctx := context.WithValue(req.Context(), KeyProduct{}, prod)
+		req = req.WithContext(ctx)
+
+		// Call the next handler, which can be another middleware in the chain, or the final handler
+		// Вызов следующего обработчика, который может быть следующий middleware в цепи, или последним
+		next.ServeHTTP(w, req)
+	})
 }
