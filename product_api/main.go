@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/alonelegion/env"
+	"github.com/alonelegion/go_microservices/product_api/data"
 	"github.com/go-openapi/runtime/middleware"
 	"log"
 	"net/http"
@@ -14,12 +16,17 @@ import (
 	"github.com/alonelegion/go_microservices/product_api/handlers"
 )
 
+var bindAddress = env.String("BIND_ADDRESS", false, ":8080", "Bind address for the server")
+
 func main() {
+	env.Parse()
+
 	l := log.New(os.Stdout, "product_api", log.LstdFlags)
+	v := data.NewValidation()
 
 	// Create the handlers
 	// Создание нового обработчика
-	ph := handlers.NewProducts(l)
+	ph := handlers.NewProducts(l, v)
 
 	// Create a new serve mux and register the handlers
 	// Создание нового serve mux и регистрация обработчиков
@@ -28,18 +35,19 @@ func main() {
 	// handlers for API
 	// обработчики для API
 	getRouter := sm.Methods(http.MethodGet).Subrouter()
-	getRouter.HandleFunc("/", ph.GetProducts)
+	getRouter.HandleFunc("/products", ph.ListAll)
+	getRouter.HandleFunc("/products/{id:[0-9]+}", ph.ListSingle)
 
 	putRouter := sm.Methods(http.MethodPut).Subrouter()
-	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProducts)
-	putRouter.Use(ph.MiddlewareProductValidation)
+	putRouter.HandleFunc("/products", ph.Update)
+	putRouter.Use(ph.MiddlewareValidateProduct)
 
 	postRouter := sm.Methods(http.MethodPost).Subrouter()
-	postRouter.HandleFunc("/", ph.AddProduct)
-	postRouter.Use(ph.MiddlewareProductValidation)
+	postRouter.HandleFunc("/products", ph.Create)
+	postRouter.Use(ph.MiddlewareValidateProduct)
 
 	deleteRouter := sm.Methods(http.MethodDelete).Subrouter()
-	deleteRouter.HandleFunc("/{id:[0-9]+}", ph.DeleteProduct)
+	deleteRouter.HandleFunc("/{id:[0-9]+}", ph.Delete)
 
 	// handler for documentation
 	// Обработчик для документации
@@ -52,25 +60,29 @@ func main() {
 	// create a new server
 	// создание нового сервера
 	s := http.Server{
-		Addr:         ":8080",
-		Handler:      sm,
-		IdleTimeout:  120 * time.Second,
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
+		Addr:         *bindAddress,      // configure the bind address
+		Handler:      sm,                // set the default handler
+		ErrorLog:     l,                 // set the logger for the server
+		ReadTimeout:  5 * time.Second,   // max time to read request from the client
+		WriteTimeout: 10 * time.Second,  // max time to write response to the client
+		IdleTimeout:  120 * time.Second, // max time for connections using TCP Keep-Alive
 	}
 
 	// start the server
 	// запуск сервера
 	go func() {
+		l.Println("Starting server on port 8080")
+
 		err := s.ListenAndServe()
 		if err != nil {
-			log.Fatal(err)
+			l.Printf("Error starting server: %s\n", err)
+			os.Exit(1)
 		}
 	}()
 
 	// trap sigterm or interrupt and gracefully shutdown the server
 	// перехват сигнала или прерывание и корректное выключение сервера
-	sigChan := make(chan os.Signal)
+	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt)
 	signal.Notify(sigChan, os.Kill)
 

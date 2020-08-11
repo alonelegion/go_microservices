@@ -10,20 +10,57 @@ import (
 // responses:
 //	200: productsResponse
 
-// GetProducts returns the products from data store
-// GetProducts возвращает товары из хранилища данных
-func (p *Products) GetProducts(w http.ResponseWriter, _ *http.Request) {
-	p.l.Println("Handle GET Products")
+// ListAll handles GET requests and returns all current products
+// ListAll обрабатывает запросы GET и возвращает все текущие товары
+func (p *Products) ListAll(w http.ResponseWriter, req *http.Request) {
+	p.l.Println("[DEBUG] get all records")
 
 	// fetch the products from the database
-	// Получение товаров из хранилища
-	lp := data.GetProducts()
+	// Получение товаров из базыданных
+	prods := data.GetProducts()
 
 	// serialize the list to JSON
 	// сериализация списка в JSON
-	err := lp.ToJSON(w)
+	err := data.ToJSON(prods, w)
 	if err != nil {
-		http.Error(w, "Unable to marshal json", http.StatusInternalServerError)
+		p.l.Println("[ERROR] serializing product", err)
+	}
+}
+
+// swagger:route GET /products/{id} products listSingleProduct
+// Return a list of products from the database
+// responses:
+//	200: productResponse
+//	404: errorResponse
+
+// ListSingle handles GET requests
+// ListSingle обрабатывает запросы GET
+func (p *Products) ListSingle(w http.ResponseWriter, req *http.Request) {
+	id := getProductID(req)
+
+	p.l.Println("[DEBUG] get record id", id)
+
+	prod, err := data.GetProductByID(id)
+
+	switch err {
+	case nil:
+
+	case data.ErrProductNotFound:
+		p.l.Println("[ERROR] fetching product", err)
+
+		w.WriteHeader(http.StatusNotFound)
+		data.ToJSON(&GenericError{Message: err.Error()}, w)
 		return
+	default:
+		p.l.Println("[ERROR] fetching product", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		data.ToJSON(&GenericError{Message: err.Error()}, w)
+		return
+	}
+
+	err = data.ToJSON(prod, w)
+	if err != nil {
+		p.l.Println("[ERROR] serializing product", err)
 	}
 }

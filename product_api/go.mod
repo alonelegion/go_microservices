@@ -3,6 +3,7 @@ module github.com/alonelegion/go_microservices/product_api
 go 1.14
 
 require (
+	github.com/alonelegion/env v0.0.0-20200811182007-82d355fb7ad2
 	github.com/go-openapi/runtime v0.19.20
 	github.com/go-openapi/spec v0.19.9 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
