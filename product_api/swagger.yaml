@@ -71,7 +71,7 @@ paths:
       operationId: listProducts
       responses:
         "200":
-          $ref: '#/responses/productsResponse'
+          $ref: '#/responses/data.Product'
       tags:
       - products
     post:

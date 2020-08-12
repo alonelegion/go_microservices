@@ -40,7 +40,7 @@ type errorValidationWrapper struct {
 
 // A list of products
 // swagger:response productsResponse
-type productsResponseWrapper struct {
+type productsResponse struct {
 	// All current products
 	// in: body
 	Body []data.Product
@@ -48,7 +48,7 @@ type productsResponseWrapper struct {
 
 // Data structure representing a single product
 // swagger:response productResponse
-type productResponseWrapper struct {
+type productResponse struct {
 	// Newly created product
 	// in: body
 	Body data.Product

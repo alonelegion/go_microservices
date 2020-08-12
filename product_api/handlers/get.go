@@ -15,6 +15,8 @@ import (
 func (p *Products) ListAll(w http.ResponseWriter, req *http.Request) {
 	p.l.Println("[DEBUG] get all records")
 
+	w.Header().Add("Content-Type", "application/json")
+
 	// fetch the products from the database
 	// Получение товаров из базыданных
 	prods := data.GetProducts()
