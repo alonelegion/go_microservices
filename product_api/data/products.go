@@ -142,4 +142,11 @@ var productList = []*Product{
 		Price:       1.99,
 		SKU:         "fjd34",
 	},
+	&Product{
+		ID:          3,
+		Name:        "Cappuccino",
+		Description: "Is an espresso-based coffee drink that originated in Italy",
+		Price:       3.15,
+		SKU:         "ljbgj",
+	},
 }

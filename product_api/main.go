@@ -11,7 +11,7 @@ import (
 	"os/signal"
 	"time"
 
-	gohandlers "github.com/gorilla/handlers"
+	go_handlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
 	"github.com/alonelegion/go_microservices/product_api/handlers"
@@ -59,7 +59,7 @@ func main() {
 	getRouter.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
 	// CORS
-	ch := gohandlers.CORS(gohandlers.AllowedOrigins([]string{"http://localhost:3000"}))
+	ch := go_handlers.CORS(go_handlers.AllowedOrigins([]string{"http://localhost:3000"}))
 
 	// create a new server
 	// создание нового сервера
