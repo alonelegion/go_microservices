@@ -27,4 +27,7 @@ func NewLocal(basePath string, maxSize int) (*Local, error) {
 	return &Local{basePath: p}, nil
 }
 
-//
+// Save the contents of the Writer to the given path
+// path is a relative path, basePath will be appended
+// Save - содержит Writer по заданному пути
+// Путь

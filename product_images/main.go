@@ -2,7 +2,9 @@ package main
 
 import (
 	"github.com/alonelegion/env"
+	"github.com/alonelegion/go_microservices/product_images/files"
 	hclog "github.com/hashicorp/go-hclog"
+	"os"
 )
 
 var bindAddress = env.String("BIND_ADDRESS", false, ":8080", "Bind address for the server")
@@ -11,7 +13,6 @@ var basePath = env.String("BASE_PATH", false, "./image_store", "Base path to sav
 
 func main() {
 	env.Parse()
-
 	l := hclog.New(
 		&hclog.LoggerOptions{
 			Name:  "product_images",
@@ -27,5 +28,13 @@ func main() {
 	// max filesize 5MB
 	// Создание класса локального хранилища
 	// максимальный размер одного файла 5MB
-	stor, err :=
+	stor, err := files.NewLocal(*basePath, 1024*1000*5)
+	if err != nil {
+		l.Error("Unable to create storage", "error", err)
+		os.Exit(1)
+	}
+
+	// create the handlers
+	// создание обработчиков
+	fh :=
 }
