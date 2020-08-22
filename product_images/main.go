@@ -1,10 +1,16 @@
 package main
 
 import (
+	"context"
 	"github.com/alonelegion/env"
 	"github.com/alonelegion/go_microservices/product_images/files"
+	"github.com/alonelegion/go_microservices/product_images/handlers"
+	"github.com/gorilla/mux"
 	hclog "github.com/hashicorp/go-hclog"
+	"net/http"
 	"os"
+	"os/signal"
+	"time"
 )
 
 var bindAddress = env.String("BIND_ADDRESS", false, ":8080", "Bind address for the server")
@@ -12,7 +18,7 @@ var logLevel = env.String("LOG_LEVEL", false, "debug", "Log output level for the
 var basePath = env.String("BASE_PATH", false, "./image_store", "Base path to save images")
 
 func main() {
-	env.Parse()
+	_ = env.Parse()
 	l := hclog.New(
 		&hclog.LoggerOptions{
 			Name:  "product_images",
@@ -36,5 +42,61 @@ func main() {
 
 	// create the handlers
 	// создание обработчиков
-	fh :=
+	fh := handlers.NewFiles(stor, l)
+
+	// create a new serve mux and register the handlers
+	// создать новый serve mux и зарегестрировать обработчик
+	sm := mux.NewRouter()
+
+	ph := sm.Methods(http.MethodPost).Subrouter()
+	ph.HandleFunc("/images/{id:[0-9]+}/{filename:[a-zA-Z]+\\.[a-z]{3}}", fh.ServeHTTP)
+
+	// get files
+	// получить файлы
+	gh := sm.Methods(http.MethodGet).Subrouter()
+	gh.Handle(
+		"/images/{id:[0-9]+}/{filename:[a-zA-Z]+\\.[a-z]{3}}",
+		http.StripPrefix("/images/", http.FileServer(http.Dir(*basePath))),
+	)
+
+	// create a new server
+	// создать новый сервер
+	s := http.Server{
+		Addr:         *bindAddress,      // configure the bind address
+		Handler:      sm,                // set the default handler
+		ErrorLog:     sl,                // the logger for the server
+		ReadTimeout:  5 * time.Second,   // max time to read request from the client
+		WriteTimeout: 10 * time.Second,  // max time to write response to the client
+		IdleTimeout:  120 * time.Second, // max time for connections using TCP Keep-Alive
+	}
+
+	// start the server
+	// запуск сервера
+	go func() {
+		l.Info("Starting server", "bind_address", *bindAddress)
+
+		err := s.ListenAndServe()
+		if err != nil {
+			l.Error("Unable to start server", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	// graceful shutdown the server
+	// корректное завершение работы сервера
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Kill)
+
+	// Block until a signal is received
+	// Блокировка до получения сигнала
+	sig := <-c
+	l.Info("Shutting down server with", "signal", sig)
+
+	// graceful shutdown the server, waiting max 30 seconds
+	// for current operations to complete
+	// корректно выключить сервер, ожидание не более 30 секунд
+	// для завершения текущих операций
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	_ = s.Shutdown(ctx)
 }
