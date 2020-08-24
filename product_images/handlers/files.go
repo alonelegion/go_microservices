@@ -30,6 +30,12 @@ func (f *Files) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	f.log.Info("Handler POST", "id", id, "filename", fn)
 
+	// check that the filepath is a valid name and file
+	if id == "" || fn == "" {
+		f.invalidURI(req.URL.String(), w)
+		return
+	}
+
 	// no need to check for invalid id or filename as the mux router
 	// will not send requests here unless they have the correct parameters
 	// Нет необходимости проверять недопустимый идентификатор или имя файла,

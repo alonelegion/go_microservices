@@ -14,6 +14,7 @@ import (
 type Local struct {
 	maxFileSize int // maximum number of bytes for files.
 	// Максимальное кол-во байтов для файлов
+
 	basePath string
 }
 
