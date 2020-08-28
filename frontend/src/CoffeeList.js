@@ -21,11 +21,11 @@ class CoffeeList extends React.Component {
         for (let i=0; i < this.state.products.length; i++) {
 
             table.push(
-                <tr key={i}>
-                    <td>{this.state.products[i].name}</td>
-                    <td>{this.state.products[i].price}</td>
-                    <td>{this.state.products[i].sku}</td>
-                </tr>
+            <tr key={i}>
+                <td>{this.state.products[i].name}</td>
+                <td>{this.state.products[i].price}</td>
+                <td>{this.state.products[i].sku}</td>
+            </tr>
             );
         }
 
@@ -36,16 +36,16 @@ class CoffeeList extends React.Component {
         super(props);
         this.readData();
         this.state = {products: []};
-
+    
         this.readData = this.readData.bind(this);
     }
 
     render() {
-        return (
-            <div>
-                <h1 style={{marginBottom: "40px"}}>Menu</h1>
-                <Table>
-                    <thead>
+      return (
+        <div>
+            <h1 style={{marginBottom: "40px"}}>Menu</h1>
+            <Table>
+                <thead>
                     <tr>
                         <th>
                             Name
@@ -57,13 +57,13 @@ class CoffeeList extends React.Component {
                             SKU
                         </th>
                     </tr>
-                    </thead>
-                    <tbody>
+                </thead>
+                <tbody>
                     {this.getProducts()}
-                    </tbody>
-                </Table>
-            </div>
-        )
+                </tbody>
+            </Table>
+        </div>
+      ) 
     }
 }
 

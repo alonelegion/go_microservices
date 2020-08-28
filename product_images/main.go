@@ -2,20 +2,22 @@ package main
 
 import (
 	"context"
-	"github.com/alonelegion/env"
-	"github.com/alonelegion/go_microservices/product_images/files"
-	"github.com/alonelegion/go_microservices/product_images/handlers"
-	"github.com/gorilla/mux"
-	hclog "github.com/hashicorp/go-hclog"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/alonelegion/env"
+	"github.com/alonelegion/go_microservices/product_images/files"
+	"github.com/alonelegion/go_microservices/product_images/handlers"
+	gohandlers "github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	hclog "github.com/hashicorp/go-hclog"
 )
 
-var bindAddress = env.String("BIND_ADDRESS", false, ":8080", "Bind address for the server")
+var bindAddress = env.String("BIND_ADDRESS", false, ":8081", "Bind address for the server")
 var logLevel = env.String("LOG_LEVEL", false, "debug", "Log output level for the server [debug, info, trace]")
-var basePath = env.String("BASE_PATH", false, "./image_store", "Base path to save images")
+var basePath = env.String("BASE_PATH", false, "./imagestore", "Base path to save images")
 
 func main() {
 	_ = env.Parse()
@@ -48,8 +50,11 @@ func main() {
 	// создать новый serve mux и зарегестрировать обработчик
 	sm := mux.NewRouter()
 
+	ch := gohandlers.CORS(gohandlers.AllowedOrigins([]string{"*"}))
+
 	ph := sm.Methods(http.MethodPost).Subrouter()
-	ph.HandleFunc("/images/{id:[0-9]+}/{filename:[a-zA-Z]+\\.[a-z]{3}}", fh.ServeHTTP)
+	ph.HandleFunc("/images/{id:[0-9]+}/{filename:[a-zA-Z]+\\.[a-z]{3}}", fh.UploadREST)
+	ph.HandleFunc("/", fh.UploadMultipart)
 
 	// get files
 	// получить файлы
@@ -63,7 +68,7 @@ func main() {
 	// создать новый сервер
 	s := http.Server{
 		Addr:         *bindAddress,      // configure the bind address
-		Handler:      sm,                // set the default handler
+		Handler:      ch(sm),            // set the default handler
 		ErrorLog:     sl,                // the logger for the server
 		ReadTimeout:  5 * time.Second,   // max time to read request from the client
 		WriteTimeout: 10 * time.Second,  // max time to write response to the client
