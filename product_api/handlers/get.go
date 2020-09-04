@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+	protos "github.com/alonelegion/go_microservices/currency/protos/currency"
 	"github.com/alonelegion/go_microservices/product_api/data"
 	"net/http"
 )
@@ -60,6 +62,20 @@ func (p *Products) ListSingle(w http.ResponseWriter, req *http.Request) {
 		data.ToJSON(&GenericError{Message: err.Error()}, w)
 		return
 	}
+
+	// get exchange rate
+	rr := &protos.RateRequest{
+		Base:        protos.Currencies(protos.Currencies_value["EUR"]),
+		Destination: protos.Currencies(protos.Currencies_value["GBP"]),
+	}
+	resp, err := p.cc.GetRate(context.Background(), rr)
+	if err != nil {
+		p.l.Println("[Error] error getting new rate", err)
+		data.ToJSON(&GenericError{Message: err.Error()}, w)
+		return
+	}
+
+	prod.Price = prod.Price * resp.Rate
 
 	err = data.ToJSON(prod, w)
 	if err != nil {

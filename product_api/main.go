@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"github.com/alonelegion/env"
+	protos "github.com/alonelegion/go_microservices/currency/protos/currency"
 	"github.com/alonelegion/go_microservices/product_api/data"
 	"github.com/go-openapi/runtime/middleware"
+	"google.golang.org/grpc"
 	"log"
 	"net/http"
 	"os"
@@ -25,9 +27,18 @@ func main() {
 	l := log.New(os.Stdout, "product_api", log.LstdFlags)
 	v := data.NewValidation()
 
+	conn, err := grpc.Dial("localhost:8082", grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+
+	// create client
+	cc := protos.NewCurrencyClient(conn)
+
 	// Create the handlers
 	// Создание нового обработчика
-	ph := handlers.NewProducts(l, v)
+	ph := handlers.NewProducts(l, v, cc)
 
 	// Create a new serve mux and register the handlers
 	// Создание нового serve mux и регистрация обработчиков

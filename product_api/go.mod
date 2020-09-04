@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/alonelegion/env v0.0.0-20200811182007-82d355fb7ad2
+	github.com/alonelegion/go_microservices/currency v0.0.0-20200903183035-90caf2f87a3e
 	github.com/go-openapi/runtime v0.19.20
 	github.com/go-openapi/spec v0.19.9 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
