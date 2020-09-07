@@ -10,3 +10,7 @@ Building a simple microservice in golang
 **FRONTEND WEBSITE**
 
 Веб-сайт на ReactJS для предоставления информации от Product API
+
+**PRODUCT IMAGES**
+
+Сервис изображений на основе Go, поддерживающий сжатый Gzip-контент, составные формы и подход RESTful для загрузки и выгрузки изображений.
