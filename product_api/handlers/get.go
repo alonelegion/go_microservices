@@ -40,6 +40,8 @@ func (p *Products) ListAll(w http.ResponseWriter, req *http.Request) {
 // ListSingle handles GET requests
 // ListSingle обрабатывает запросы GET
 func (p *Products) ListSingle(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+
 	id := getProductID(req)
 
 	p.l.Println("[DEBUG] get record id", id)
