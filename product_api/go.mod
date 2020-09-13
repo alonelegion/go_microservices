@@ -12,6 +12,7 @@ require (
 	github.com/go-swagger/go-swagger v0.25.0 // indirect
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.4
+	github.com/hashicorp/go-hclog v0.14.1
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mailru/easyjson v0.7.3 // indirect
