@@ -34,7 +34,14 @@ func (c *Currency) handleUpdates() {
 		for k, v := range c.subscriptions {
 			// loop over subscribed rates
 			for _, rr := range v {
-				c.rates.GetRate(rr.GetBase().String())
+				r, err := c.rates.GetRate(rr.GetBase().String(), rr.GetDestination().String())
+				if err != nil {
+					c.log.Error("Unable to get updated rate", "base", rr.GetBase().String(), "destination", rr.GetDestination().String())
+				}
+				err = k.Send(&protos.RateResponse{Base: rr.Base, Destination: rr.Destination, Rate: r})
+				if err != nil {
+					c.log.Error("Unable to send updated rate", "base", rr.GetBase().String(), "destination", rr.GetDestination().String())
+				}
 			}
 		}
 	}
@@ -50,7 +57,7 @@ func (c *Currency) GetRate(ctx context.Context, rr *protos.RateRequest) (*protos
 		return nil, err
 	}
 
-	return &protos.RateResponse{Rate: rate}, nil
+	return &protos.RateResponse{Base: rr.Base, Destination: rr.Destination, Rate: rate}, nil
 }
 
 // SubscribeRates implements the gRPC bi-direction streaming method for the server
